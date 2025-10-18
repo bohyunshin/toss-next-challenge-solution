@@ -124,40 +124,6 @@ class Model(FactorizationMachineWithSequence):
                 nn.init.xavier_normal_(module.weight)
                 nn.init.zeros_(module.bias)
 
-    def _create_dense_input(self, numerical_x, categorical_x):
-        """Create dense input vector for cross and deep networks"""
-        batch_size = (
-            categorical_x.size(0) if categorical_x is not None else numerical_x.size(0)
-        )
-        device = next(self.parameters()).device
-
-        dense_inputs = []
-
-        # Categorical embeddings
-        if categorical_x is not None and self.num_categorical > 0:
-            global_indices = categorical_x + self.field_offsets_tensor.unsqueeze(0)
-            cat_embeddings = self.categorical_embeddings(global_indices)
-            # Flatten categorical embeddings
-            cat_dense = cat_embeddings.view(batch_size, -1)
-            dense_inputs.append(cat_dense)
-
-        # Numerical embeddings
-        if numerical_x is not None and self.numerical_field_count > 0:
-            # Element-wise multiply numerical values with embedding vectors
-            num_embeddings = self.numerical_embeddings.unsqueeze(0).expand(
-                batch_size, -1, -1
-            )
-            numerical_x_expanded = numerical_x.unsqueeze(-1)
-            weighted_num_embeddings = num_embeddings * numerical_x_expanded
-            # Flatten numerical embeddings
-            num_dense = weighted_num_embeddings.view(batch_size, -1)
-            dense_inputs.append(num_dense)
-
-        if not dense_inputs:
-            return torch.zeros(batch_size, self.input_dim, device=device)
-
-        return torch.cat(dense_inputs, dim=1)
-
     def forward(self, numerical_x=None, categorical_x=None, seq=None, **kwargs):
         """
         Forward pass of DCN model
@@ -169,13 +135,17 @@ class Model(FactorizationMachineWithSequence):
         Returns:
             DCN predictions (batch_size, 1)
         """
+        batch_size = (
+            categorical_x.size(0) if categorical_x is not None else numerical_x.size(0)
+        )
+        
         numerical_x = self.bn_num(numerical_x)
 
         # sequence encoding
         seq_emb = self.encoder(seq)  # (batch_size, embed_dim)
 
         # Create dense input vector
-        dense_input = self._create_dense_input(numerical_x, categorical_x)
+        dense_input = self._get_all_embeddings(numerical_x, categorical_x).view(batch_size, -1)
 
         # Cross Network forward
         cross_output = self.cross_network(dense_input)

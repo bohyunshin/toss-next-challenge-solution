@@ -130,31 +130,9 @@ class Model(FactorizationMachineWithSequence):
         batch_size = (
             categorical_x.size(0) if categorical_x is not None else numerical_x.size(0)
         )
-        device = next(self.parameters()).device
 
         # Collect all embeddings (reuse same embeddings as FM!)
-        all_embeddings = []
-
-        # Categorical embeddings
-        if categorical_x is not None and self.num_categorical > 0:
-            global_indices = categorical_x + self.field_offsets_tensor.unsqueeze(0)
-            cat_embeddings = self.categorical_embeddings(
-                global_indices
-            )  # (batch_size, num_categorical, embed_dim)
-            all_embeddings.append(cat_embeddings)
-
-        # Numerical embeddings
-        if numerical_x is not None and self.numerical_field_count > 0:
-            num_embeddings = self.numerical_embeddings.unsqueeze(0).expand(
-                batch_size, -1, -1
-            )  # (batch_size, num_numerical, embed_dim)
-            all_embeddings.append(num_embeddings)
-
-        # sequence embeddings
-        all_embeddings.append(seq_emb.unsqueeze(1))
-
-        if not all_embeddings:
-            return torch.zeros(batch_size, 1, device=device)
+        all_embeddings = self._get_all_embeddings(numerical_x, categorical_x, seq_emb=seq_emb)
 
         # Concatenate all embeddings and flatten for MLP input
         embeddings = torch.cat(

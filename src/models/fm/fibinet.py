@@ -3,11 +3,11 @@ from typing import List
 import torch
 import torch.nn as nn
 from torch import Tensor
-from models.fm.lr import Model as LogisticRegression
+from models.fm.fm import Model as FactorizationMachine
 from layers import SENetBlock, BilinearInteraction
 
 
-class Model(LogisticRegression):
+class Model(FactorizationMachine):
     """
     FiBiNet: Feature Importance and Bilinear Feature Interaction Network
 
@@ -56,17 +56,6 @@ class Model(LogisticRegression):
             )
 
         self._init_embedding_weights()
-
-    def _setup_categorical_embeddings(self):
-        """Setup categorical embeddings"""
-        total_vocab_size = self.field_offsets[-1]
-        self.categorical_embeddings = nn.Embedding(total_vocab_size, self.embed_dim)
-
-    def _setup_numerical_embeddings(self):
-        """Setup numerical embeddings"""
-        self.numerical_embeddings = nn.Parameter(
-            torch.randn(self.numerical_field_count, self.embed_dim)
-        )
 
     def _init_embedding_weights(self):
         """Initialize embedding weights"""

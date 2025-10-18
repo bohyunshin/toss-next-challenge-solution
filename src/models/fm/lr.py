@@ -3,8 +3,10 @@ from typing import List
 import torch.nn as nn
 import torch
 
+from models.fm.base import BaseFM
 
-class Model(nn.Module):
+
+class Model(BaseFM):
     """
     Logistic Regression model supporting both categorical and numerical features
 
@@ -25,11 +27,10 @@ class Model(nn.Module):
         numerical_field_count: int = 0,
         **kwargs,
     ):
-        super(Model, self).__init__()
-
-        self.categorical_field_dims = categorical_field_dims or []
-        self.numerical_field_count = numerical_field_count
-        self.num_categorical = len(self.categorical_field_dims)
+        super().__init__(
+            categorical_field_dims=categorical_field_dims,
+            numerical_field_count=numerical_field_count,
+        )
 
         # batch norm for numerical features
         self.bn_num = nn.BatchNorm1d(self.numerical_field_count)

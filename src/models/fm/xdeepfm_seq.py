@@ -127,7 +127,7 @@ class Model(DeepFMWithSequence):
             device = next(self.parameters()).device
             return torch.zeros(batch_size, 1, device=device)
 
-        # Get all embeddings (same as used in DeepFM)
+        # Get all embeddings including seq embedding
         embeddings = self._get_all_embeddings(numerical_x, categorical_x, seq_emb)
 
         if embeddings is None:
@@ -147,36 +147,3 @@ class Model(DeepFMWithSequence):
 
         return cin_output
 
-    def _get_all_embeddings(self, numerical_x, categorical_x, seq_emb):
-        """Get all embeddings for CIN (same as DeepFM)"""
-        batch_size = (
-            categorical_x.size(0) if categorical_x is not None else numerical_x.size(0)
-        )
-
-        all_embeddings = []
-
-        # Categorical embeddings
-        if categorical_x is not None and self.num_categorical > 0:
-            global_indices = categorical_x + self.field_offsets_tensor.unsqueeze(0)
-            cat_embeddings = self.categorical_embeddings(global_indices)
-            all_embeddings.append(cat_embeddings)
-
-        # Numerical embeddings
-        if numerical_x is not None and self.numerical_field_count > 0:
-            num_embeddings = self.numerical_embeddings.unsqueeze(0).expand(
-                batch_size, -1, -1
-            )
-            all_embeddings.append(num_embeddings)
-
-        # sequence embeddings
-        all_embeddings.append(seq_emb.unsqueeze(1))
-
-        if not all_embeddings:
-            return None
-
-        # Concatenate all embeddings
-        embeddings = torch.cat(
-            all_embeddings, dim=1
-        )  # (batch_size, total_fields, embed_dim)
-
-        return embeddings

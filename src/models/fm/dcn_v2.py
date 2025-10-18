@@ -105,10 +105,14 @@ class Model(DCNv1):
         Returns:
             DCN-v2 predictions (batch_size, 1)
         """
+        batch_size = (
+            categorical_x.size(0) if categorical_x is not None else numerical_x.size(0)
+        )
+        
         numerical_x = self.bn_num(numerical_x)
 
         # Create dense input vector
-        dense_input = self._create_dense_input(numerical_x, categorical_x)
+        dense_input = self._get_all_embeddings(numerical_x, categorical_x, is_num_weighted = True).view(batch_size, -1)
 
         if self.structure == "parallel":
             # Original DCN-v1 style (parallel cross and deep)
