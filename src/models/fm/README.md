@@ -15,15 +15,17 @@ graph LR
     
     FMBase --> FM
     FMBase --> SequenceFM
+    FMBase --> DeepFMBase
     
     DeepFMBase --> DeepFM
     DeepFMBase --> SequenceDeepFM
-    
-    FFMBase --> FFM
-    FFMBase --> SequenceFFM
+    DeepFMBase --> xDeepFMBase
     
     xDeepFMBase --> xDeepFM
     xDeepFMBase --> SequencexDeepFM
+    
+    FFMBase --> FFM
+    FFMBase --> SequenceFFM
     
     DCNBase --> DCN
     DCNBase --> SequenceDCN
