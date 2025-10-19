@@ -8,18 +8,10 @@ This directory contains implementations of various Factorization Machine models 
 graph LR
     Base --> FM[FM]
     Base --> DeepFM[DeepFM]
-    Base --> xDeepFM[xDeepFM]
-    Base --> AutoInt[AutoInt]
-    Base --> FiBiNET[FiBiNET]
-    Base --> DCNV2[DCN V2]
     
     Base:::baseClass
     FM:::fmClass
     DeepFM:::deepClass
-    xDeepFM:::deepClass
-    AutoInt:::deepClass
-    FiBiNET:::deepClass
-    DCNV2:::deepClass
     
     classDef baseClass fill:#e1f5fe,stroke:#01579b,stroke-width:3px
     classDef fmClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
@@ -54,6 +46,14 @@ Each model extends the Base class with specific architectures:
 
 - **FM**: Classic Factorization Machine with second-order interactions
 - **DeepFM**: Combines FM with deep neural networks
+
+## Usage
+
+All models inherit the common interface from Base and can handle:
+- Mixed categorical and numerical features
+- Batch normalization for numerical inputs
+- Vectorized operations for efficiency
+- Flexible embedding dimensions
 - **xDeepFM**: Enhanced DeepFM with Compressed Interaction Network (CIN)
 - **AutoInt**: Attention-based feature interactions
 - **FiBiNET**: Bilinear feature interactions with attention
