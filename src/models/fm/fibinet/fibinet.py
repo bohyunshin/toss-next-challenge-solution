@@ -3,11 +3,11 @@ from typing import List
 import torch
 import torch.nn as nn
 from torch import Tensor
-from models.fm.fm import Model as FactorizationMachine
+from models.fm.base import Base
 from layers import SENetBlock, BilinearInteraction
 
 
-class Model(FactorizationMachine):
+class Model(Base):
     """
     FiBiNet: Feature Importance and Bilinear Feature Interaction Network
 
@@ -26,7 +26,10 @@ class Model(FactorizationMachine):
         **kwargs,
     ):
         # Initialize parent class (gets bias + first-order interactions)
-        super(Model, self).__init__(categorical_field_dims, numerical_field_count)
+        super().__init__(
+            categorical_field_dims=categorical_field_dims,
+            numerical_field_count=numerical_field_count,
+        )
 
         self.embed_dim = embed_dim
         self.reduction_ratio = reduction_ratio

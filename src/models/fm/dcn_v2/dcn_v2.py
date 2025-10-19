@@ -1,10 +1,8 @@
 import torch
-import torch.nn as nn
-from models.fm.dcn import Model as DCNv1
-from layers.interaction import CrossNetworkV2
+from models.fm.dcn_v2.dcn_v2_base import DCNv2Base
 
 
-class Model(DCNv1):
+class Model(DCNv2Base):
     """
     Deep Cross Network V2 (DCN-v2)
 
@@ -29,11 +27,6 @@ class Model(DCNv1):
         num_experts=1,
         **kwargs,
     ):
-        self.structure = structure
-        self.use_low_rank = use_low_rank
-        self.low_rank = low_rank
-        self.num_experts = num_experts
-
         # Initialize parent class
         super().__init__(
             categorical_field_dims=categorical_field_dims,
@@ -42,57 +35,13 @@ class Model(DCNv1):
             cross_layers=cross_layers,
             deep_layers=deep_layers,
             dropout_rate=dropout_rate,
+            structure=structure,
+            use_low_rank=use_low_rank,
+            low_rank=low_rank,
+            num_experts=num_experts,
+            use_seq_features=False,
             **kwargs,
         )
-
-        # Rebuild networks and output layer for DCN-v2
-        self._rebuild_networks()
-
-    def _rebuild_networks(self):
-        """Rebuild networks for DCN-v2 architecture"""
-        # Replace cross network with v2 if requested
-        if self.use_low_rank:
-            self.cross_network = CrossNetworkV2(
-                self.input_dim, self.cross_layers, self.low_rank, self.num_experts
-            )
-
-        # Rebuild output layer based on structure
-        final_input_dim = self._calculate_final_input_dim()
-        self.output_layer = nn.Linear(final_input_dim, 1)
-
-        # For stacked_parallel, we need an additional deep network
-        if self.structure == "stacked_parallel":
-            self.deep_network_parallel = self._build_deep_network()
-
-        # Re-initialize weights
-        self._init_dcn_weights()
-
-    def _calculate_final_input_dim(self):
-        """Calculate final layer input dimension based on structure"""
-        deep_output_dim = self.deep_layers[-1] if self.deep_layers else self.input_dim
-
-        if self.structure == "parallel":
-            # Cross output + Deep output
-            return self.input_dim + deep_output_dim
-        elif self.structure == "stacked":
-            # Only deep output (deep takes cross output as input)
-            return deep_output_dim
-        elif self.structure == "stacked_parallel":
-            # Cross output + Deep(cross) output + Deep(input) output
-            return self.input_dim + deep_output_dim + deep_output_dim
-        else:
-            raise ValueError(f"Unknown structure: {self.structure}")
-
-    def _init_dcn_weights(self):
-        """Initialize weights for DCN-v2 components"""
-        super()._init_dcn_weights()
-
-        # Initialize additional deep network for stacked_parallel
-        if hasattr(self, "deep_network_parallel"):
-            for module in self.deep_network_parallel.modules():
-                if isinstance(module, nn.Linear):
-                    nn.init.xavier_normal_(module.weight)
-                    nn.init.zeros_(module.bias)
 
     def forward(self, numerical_x=None, categorical_x=None, **kwargs):
         """

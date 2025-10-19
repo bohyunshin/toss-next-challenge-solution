@@ -3,8 +3,8 @@ from .attention import (
     MultiHeadAttentionWithAggregation,
     SequenceAggregator,
 )
-from .interaction import CIN, CrossNetwork, SENetBlock, BilinearInteraction
-from .mlp import FusionNetwork
+from .interaction import CIN, CrossNetwork, CrossNetworkV2, SENetBlock, BilinearInteraction
+from .mlp import FusionNetwork, MultiLayerPerceptron
 
 __all__ = [
     "TransformerEncoderWithAggregation",
@@ -15,4 +15,5 @@ __all__ = [
     "SENetBlock",
     "BilinearInteraction",
     "FusionNetwork",
+    "MultiLayerPerceptron",
 ]

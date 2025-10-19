@@ -1,10 +1,9 @@
 import torch
-import torch.nn as nn
-from models.fm.lr import Model as LogisticRegression
+from models.fm.fm.fm_base import FMBase
 from layers import MultiHeadAttentionWithAggregation
 
 
-class Model(LogisticRegression):
+class Model(FMBase):
     """
     Factorization Machine inheriting from LogisticRegression
 
@@ -27,16 +26,11 @@ class Model(LogisticRegression):
         **kwargs,
     ):
         # Initialize parent class (gets bias + first-order interactions)
-        super(Model, self).__init__(categorical_field_dims, numerical_field_count)
-
-        self.embed_dim = embed_dim
-
-        # Add second-order interaction embeddings
-        if self.num_categorical > 0:
-            self._setup_categorical_embeddings()
-
-        if self.numerical_field_count > 0:
-            self._setup_numerical_embeddings()
+        super().__init__(
+            categorical_field_dims=categorical_field_dims,
+            numerical_field_count=numerical_field_count,
+            embed_dim=embed_dim,
+        )
 
         self.encoder = MultiHeadAttentionWithAggregation(
             vocab_size=vocab_size,
@@ -48,8 +42,6 @@ class Model(LogisticRegression):
             use_causal_mask=use_causal_mask,
             aggregation="attention_pool",
         )
-
-        self._init_embedding_weights()
 
     def forward(self, numerical_x=None, categorical_x=None, seq=None, **kwargs):
         """
@@ -82,28 +74,3 @@ class Model(LogisticRegression):
         output += self._second_order_interactions(numerical_x, categorical_x, seq_emb)
 
         return output.unsqueeze(-1)  # (batch_size, 1)
-
-    def _second_order_interactions(self, numerical_x, categorical_x, seq_emb):
-        """
-        Compute second-order interactions: Σᵢ<ⱼ⟨vᵢ,vⱼ⟩xᵢxⱼ
-        Uses efficient FM formula: 0.5 * (sum_of_squares - square_of_sums)
-        """
-        V = self._get_all_embeddings(numerical_x, categorical_x, seq_emb=seq_emb)
-        X = self._get_all_x_values(numerical_x, categorical_x, use_seq_emb=True)
-
-        # Weighted embeddings: vᵢⱼ * xᵢ
-        weighted_V = V * X
-
-        # Efficient FM formula
-        sum_embeddings = torch.sum(weighted_V, dim=1)  # (batch_size, embed_dim)
-        sum_of_squares = torch.sum(sum_embeddings**2, dim=1)  # (batch_size,)
-
-        square_of_embeddings = weighted_V**2
-        square_of_sums = torch.sum(square_of_embeddings, dim=(1, 2))  # (batch_size,)
-
-        second_order = 0.5 * (sum_of_squares - square_of_sums)
-
-        # Clamp the final interaction to prevent NaN
-        second_order = torch.clamp(second_order, -100, 100)  # Prevent extreme values
-
-        return second_order
