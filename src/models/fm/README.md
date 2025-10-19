@@ -8,28 +8,28 @@ This directory contains implementations of various Factorization Machine models 
 graph LR
     Base --> LogisticRegression
     Base --> FMBase
-    Base --> F16lre
+    Base --> Fibinet
     Base --> FFMBase
     Base --> DCNBase
     Base --> DCNv2Base
-    
+
     FMBase --> FM
     FMBase --> SequenceFM
     FMBase --> DeepFMBase
-    
+
     DeepFMBase --> DeepFM
     DeepFMBase --> SequenceDeepFM
     DeepFMBase --> xDeepFMBase
-    
+
     xDeepFMBase --> xDeepFM
     xDeepFMBase --> SequencexDeepFM
-    
+
     FFMBase --> FFM
     FFMBase --> SequenceFFM
-    
+
     DCNBase --> DCN
     DCNBase --> SequenceDCN
-    
+
     DCNv2Base --> DCNv2
     DCNv2Base --> SequenceDCNv2
 ```

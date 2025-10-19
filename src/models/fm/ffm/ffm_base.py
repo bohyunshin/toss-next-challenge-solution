@@ -1,5 +1,6 @@
 import torch
 from torch import nn, Tensor
+from typing import Optional, List
 
 from models.fm.base import Base
 
@@ -7,9 +8,9 @@ from models.fm.base import Base
 class FFMBase(Base):
     def __init__(
         self,
-        categorical_field_dims=None,
-        numerical_field_count=0,
-        embed_dim=10,
+        categorical_field_dims: Optional[List[int]] = None,
+        numerical_field_count: int = 0,
+        embed_dim: int = 10,
         **kwargs,
     ):
         # Initialize parent class (gets bias + first-order interactions)
@@ -29,7 +30,7 @@ class FFMBase(Base):
             self._setup_numerical_embeddings()
 
         self._init_embedding_weights()
-    
+
     def _setup_categorical_embeddings(self):
         """Setup categorical field-aware embeddings"""
         # Each categorical feature has embeddings for each field it can interact with
@@ -64,7 +65,7 @@ class FFMBase(Base):
                 if isinstance(module, nn.Linear):
                     nn.init.xavier_normal_(module.weight)
                     nn.init.zeros_(module.bias)
-        
+
         if hasattr(self, "reduce_mlp"):
             for module in self.reduce_mlp.modules():
                 if isinstance(module, nn.Linear):
@@ -72,8 +73,12 @@ class FFMBase(Base):
                     nn.init.zeros_(module.bias)
 
     def _get_all_x(
-        self, batch_size: int, categorical_x: Tensor, numerical_x: Tensor, device: str
-    ) -> Tensor:
+        self,
+        batch_size: int,
+        categorical_x: Optional[Tensor],
+        numerical_x: Optional[Tensor],
+        device: str,
+    ) -> Optional[Tensor]:
         """
         Prepare all feature values for field-aware interactions.
 
@@ -105,10 +110,10 @@ class FFMBase(Base):
     def _get_all_embeddings(
         self,
         batch_size: int,
-        categorical_x: Tensor,
-        numerical_x: Tensor,
+        categorical_x: Optional[Tensor],
+        numerical_x: Optional[Tensor],
         device,
-    ):
+    ) -> Tensor:
         """
         Pre-compute all embeddings for field-aware interactions.
 

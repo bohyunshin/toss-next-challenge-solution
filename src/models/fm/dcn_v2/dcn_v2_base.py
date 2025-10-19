@@ -1,4 +1,5 @@
 import torch.nn as nn
+from typing import Optional, List
 from models.fm.base import Base
 from layers import CrossNetworkV2, MultiLayerPerceptron
 
@@ -16,17 +17,17 @@ class DCNv2Base(Base):
 
     def __init__(
         self,
-        categorical_field_dims=None,
-        numerical_field_count=0,
-        embed_dim=10,
-        cross_layers=2,
-        deep_layers=[256, 128, 64],
-        dropout_rate=0.2,
-        structure="stacked",  # 'parallel', 'stacked', 'stacked_parallel'
-        use_low_rank=True,
-        low_rank=32,
-        num_experts=1,
-        use_seq_features=False,
+        categorical_field_dims: Optional[List[int]] = None,
+        numerical_field_count: int = 0,
+        embed_dim: int = 10,
+        cross_layers: int = 2,
+        deep_layers: List[int] = [256, 128, 64],
+        dropout_rate: float = 0.2,
+        structure: str = "stacked",  # 'parallel', 'stacked', 'stacked_parallel'
+        use_low_rank: bool = True,
+        low_rank: int = 32,
+        num_experts: int = 1,
+        use_seq_features: bool = False,
         **kwargs,
     ):
         # Initialize parent class (FM model)
@@ -64,7 +65,7 @@ class DCNv2Base(Base):
 
         # Rebuild networks and output layer for DCN-v2
         self._build_networks()
-    
+
     def _build_networks(self):
         """Rebuild networks for DCN-v2 architecture"""
         self.cross_network = CrossNetworkV2(
@@ -86,8 +87,8 @@ class DCNv2Base(Base):
 
         # Re-initialize weights
         self._init_dcn_weights()
-    
-    def _calculate_input_dim(self):
+
+    def _calculate_input_dim(self) -> int:
         """Calculate total input dimension for cross and deep networks"""
         total_dim = 0
 
@@ -101,7 +102,7 @@ class DCNv2Base(Base):
 
         return total_dim
 
-    def _calculate_final_input_dim(self):
+    def _calculate_final_input_dim(self) -> int:
         """Calculate final layer input dimension based on structure"""
         deep_output_dim = self.deep_layers[-1] if self.deep_layers else self.input_dim
         deep_output_dim += self.embed_dim if self.use_seq_features else 0

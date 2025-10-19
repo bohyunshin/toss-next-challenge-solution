@@ -1,7 +1,6 @@
 from typing import List
 
-import torch
-import torch.nn as nn
+from torch import Tensor
 
 from models.fm.xdeepfm.xdeepfm_base import xDeepFMBase
 
@@ -40,7 +39,9 @@ class Model(xDeepFMBase):
             use_seq_feature=False,
         )
 
-    def forward(self, numerical_x=None, categorical_x=None, **kwargs):
+    def forward(
+        self, numerical_x: Tensor = None, categorical_x: Tensor = None, **kwargs
+    ):
         """
         Forward pass of xDeepFM: Linear + CIN + DNN
 
@@ -64,4 +65,3 @@ class Model(xDeepFMBase):
 
         # Combine all three components
         return linear_output + cin_output + dnn_output
-

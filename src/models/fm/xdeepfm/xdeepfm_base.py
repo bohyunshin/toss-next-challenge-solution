@@ -2,6 +2,7 @@ from typing import List
 
 import torch
 import torch.nn as nn
+from torch import Tensor
 
 from models.fm.deepfm.deepfm_base import DeepFMBase
 from layers import CIN
@@ -48,7 +49,11 @@ class xDeepFMBase(DeepFMBase):
             )  # Ensure last CIN layer matches embed_dim
 
         # Total number of fields for CIN
-        total_fields = self.num_categorical + self.numerical_field_count + (1 if use_seq_feature else 0)
+        total_fields = (
+            self.num_categorical
+            + self.numerical_field_count
+            + (1 if use_seq_feature else 0)
+        )
 
         # CIN component for explicit high-order interactions
         if total_fields > 0 and cin_layer_dims:
@@ -61,13 +66,13 @@ class xDeepFMBase(DeepFMBase):
             self.cin_output = None
 
         self._init_cin_weights()
-    
+
     def _init_cin_weights(self):
         """Initialize CIN component weights"""
         if self.cin_output is not None:
             nn.init.xavier_uniform_(self.cin_output.weight, gain=1.5)
-    
-    def _get_linear_component(self, numerical_x, categorical_x):
+
+    def _get_linear_component(self, numerical_x: Tensor, categorical_x: Tensor):
         """Get linear component from LogisticRegression"""
         batch_size = (
             categorical_x.size(0) if categorical_x is not None else numerical_x.size(0)
@@ -78,8 +83,10 @@ class xDeepFMBase(DeepFMBase):
         output += self._first_order_interactions(numerical_x, categorical_x)
 
         return output.unsqueeze(-1)  # (batch_size, 1)
-    
-    def _get_cin_component(self, numerical_x, categorical_x, seq_emb=None):
+
+    def _get_cin_component(
+        self, numerical_x: Tensor, categorical_x: Tensor, seq_emb: Tensor = None
+    ):
         """Get CIN component output"""
         if self.cin is None:
             batch_size = (

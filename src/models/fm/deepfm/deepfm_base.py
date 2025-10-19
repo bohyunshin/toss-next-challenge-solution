@@ -1,4 +1,6 @@
 import torch.nn as nn
+from typing import Optional, List
+import torch
 
 from models.fm.fm.fm_base import FMBase
 
@@ -6,12 +8,12 @@ from models.fm.fm.fm_base import FMBase
 class DeepFMBase(FMBase):
     def __init__(
         self,
-        categorical_field_dims=None,
-        numerical_field_count=0,
-        embed_dim=16,
-        mlp_dims=[512, 256, 128],
-        dropout=0.2,
-        use_seq_feature=False,
+        categorical_field_dims: Optional[List[int]] = None,
+        numerical_field_count: int = 0,
+        embed_dim: int = 16,
+        mlp_dims: List[int] = [512, 256, 128],
+        dropout: float = 0.2,
+        use_seq_feature: bool = False,
         **kwargs,
     ):
         # Initialize parent FM class (gets all FM functionality)
@@ -65,8 +67,13 @@ class DeepFMBase(FMBase):
             ) * self.embed_dim
         else:
             return (self.num_categorical + self.numerical_field_count) * self.embed_dim
-    
-    def _deep_component(self, numerical_x, categorical_x, seq_emb=None):
+
+    def _deep_component(
+        self,
+        numerical_x: Optional[torch.Tensor],
+        categorical_x: Optional[torch.Tensor],
+        seq_emb: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
         """
         Deep neural network component
 
@@ -80,9 +87,11 @@ class DeepFMBase(FMBase):
         batch_size = (
             categorical_x.size(0) if categorical_x is not None else numerical_x.size(0)
         )
-        
+
         # concatenate all dense embeddings
-        embeddings = self._get_all_embeddings(numerical_x, categorical_x, seq_emb=seq_emb)
+        embeddings = self._get_all_embeddings(
+            numerical_x, categorical_x, seq_emb=seq_emb
+        )
         deep_input = embeddings.view(
             batch_size, -1
         )  # (batch_size, total_features * embed_dim)

@@ -1,4 +1,5 @@
 import torch
+from typing import Optional, List
 
 from models.fm.base import Base
 
@@ -6,9 +7,9 @@ from models.fm.base import Base
 class FMBase(Base):
     def __init__(
         self,
-        categorical_field_dims=None,
-        numerical_field_count=0,
-        embed_dim=10,
+        categorical_field_dims: Optional[List[int]] = None,
+        numerical_field_count: int = 0,
+        embed_dim: int = 10,
         **kwargs,
     ):
         # Initialize parent class (gets bias + first-order interactions)
@@ -24,8 +25,13 @@ class FMBase(Base):
             self._setup_numerical_embeddings()
 
         self._init_embedding_weights()
-    
-    def _second_order_interactions(self, numerical_x, categorical_x, seq_emb=None):
+
+    def _second_order_interactions(
+        self,
+        numerical_x: Optional[torch.Tensor],
+        categorical_x: Optional[torch.Tensor],
+        seq_emb: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
         """
         Compute second-order interactions: Σᵢ<ⱼ⟨vᵢ,vⱼ⟩xᵢxⱼ
         Uses efficient FM formula: 0.5 * (sum_of_squares - square_of_sums)

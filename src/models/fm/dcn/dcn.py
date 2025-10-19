@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from typing import Optional, List
 from models.fm.dcn.dcn_base import DCNBase
 
 
@@ -15,12 +16,12 @@ class Model(DCNBase):
 
     def __init__(
         self,
-        categorical_field_dims=None,
-        numerical_field_count=0,
-        embed_dim=10,
-        cross_layers=2,
-        deep_layers=[256, 128, 64],
-        dropout_rate=0.2,
+        categorical_field_dims: Optional[List[int]] = None,
+        numerical_field_count: int = 0,
+        embed_dim: int = 10,
+        cross_layers: int = 2,
+        deep_layers: List[int] = [256, 128, 64],
+        dropout_rate: float = 0.2,
         **kwargs,
     ):
         # Initialize parent class (FM model)
@@ -38,7 +39,12 @@ class Model(DCNBase):
 
         self._init_dcn_weights()
 
-    def forward(self, numerical_x=None, categorical_x=None, **kwargs):
+    def forward(
+        self,
+        numerical_x: Optional[torch.Tensor] = None,
+        categorical_x: Optional[torch.Tensor] = None,
+        **kwargs,
+    ) -> torch.Tensor:
         """
         Forward pass of DCN model
 
@@ -56,7 +62,9 @@ class Model(DCNBase):
         numerical_x = self.bn_num(numerical_x)
 
         # Create dense input vector
-        dense_input = self._get_all_embeddings(numerical_x, categorical_x, is_num_weighted = True).view(batch_size, -1)
+        dense_input = self._get_all_embeddings(
+            numerical_x, categorical_x, is_num_weighted=True
+        ).view(batch_size, -1)
 
         # Cross Network forward
         cross_output = self.cross_network(dense_input)

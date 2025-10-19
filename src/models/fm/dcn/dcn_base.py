@@ -1,4 +1,5 @@
 import torch.nn as nn
+from typing import Optional, List
 from models.fm.base import Base
 from layers import CrossNetwork, MultiLayerPerceptron
 
@@ -15,13 +16,13 @@ class DCNBase(Base):
 
     def __init__(
         self,
-        categorical_field_dims=None,
-        numerical_field_count=0,
-        embed_dim=10,
-        cross_layers=2,
-        deep_layers=[256, 128, 64],
-        dropout_rate=0.2,
-        use_seq_features=False,
+        categorical_field_dims: Optional[List[int]] = None,
+        numerical_field_count: int = 0,
+        embed_dim: int = 10,
+        cross_layers: int = 2,
+        deep_layers: List[int] = [256, 128, 64],
+        dropout_rate: float = 0.2,
+        use_seq_features: bool = False,
         **kwargs,
     ):
         # Initialize parent class (FM model)
@@ -64,7 +65,7 @@ class DCNBase(Base):
             + (self.embed_dim if use_seq_features else 0)
         )
 
-    def _calculate_input_dim(self):
+    def _calculate_input_dim(self) -> int:
         """Calculate total input dimension for cross and deep networks"""
         total_dim = 0
 
@@ -77,7 +78,7 @@ class DCNBase(Base):
             total_dim += self.numerical_field_count * self.embed_dim
 
         return total_dim
-    
+
     def _init_dcn_weights(self):
         """Initialize weights for DCN components"""
         # Initialize output layer

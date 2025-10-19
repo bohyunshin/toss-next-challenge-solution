@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import List
 
 import torch
-from torch import nn
+from torch import nn, Tensor
 
 
 class Base(nn.Module):
@@ -33,12 +33,12 @@ class Base(nn.Module):
             self._setup_numerical_features()
 
         self._init_weights()
-    
+
     @abstractmethod
     def forward(**kwargs):
         raise NotImplementedError
-    
-    def _first_order_interactions(self, numerical_x, categorical_x):
+
+    def _first_order_interactions(self, numerical_x: Tensor, categorical_x: Tensor):
         """
         Compute first-order interactions: Σwᵢxᵢ
 
@@ -73,7 +73,7 @@ class Base(nn.Module):
             first_order += num_linear_weights.squeeze(-1)
 
         return first_order
-    
+
     def _setup_categorical_features(self):
         """Setup categorical feature embeddings and offsets"""
         # Create offset mapping for vectorized embedding lookup
@@ -112,7 +112,7 @@ class Base(nn.Module):
         # Initialize numerical weights
         if hasattr(self, "numerical_linear"):
             nn.init.xavier_uniform_(self.numerical_linear.weight, gain=1.0)
-    
+
     def _setup_categorical_embeddings(self):
         """Setup categorical embeddings for second-order interactions"""
         # Reuse the same total_vocab_size from parent class
@@ -125,7 +125,7 @@ class Base(nn.Module):
         self.numerical_embeddings = nn.Parameter(
             torch.randn(self.numerical_field_count, self.embed_dim)
         )
-    
+
     def _init_embedding_weights(self):
         """Initialize embedding weights for second-order interactions"""
         if hasattr(self, "categorical_embeddings"):
@@ -133,8 +133,14 @@ class Base(nn.Module):
 
         if hasattr(self, "numerical_embeddings"):
             nn.init.xavier_normal_(self.numerical_embeddings, gain=1.0)
-    
-    def _get_all_embeddings(self, numerical_x, categorical_x, seq_emb = None, is_num_weighted = False):
+
+    def _get_all_embeddings(
+        self,
+        numerical_x: Tensor,
+        categorical_x: Tensor,
+        seq_emb: Tensor = None,
+        is_num_weighted: bool = False,
+    ):
         """Get all embeddings for CIN (same as DeepFM)"""
         batch_size = (
             categorical_x.size(0) if categorical_x is not None else numerical_x.size(0)
@@ -157,7 +163,7 @@ class Base(nn.Module):
                 numerical_x_expanded = numerical_x.unsqueeze(-1)
                 num_embeddings = num_embeddings * numerical_x_expanded
             all_embeddings.append(num_embeddings)
-        
+
         # concat sequence embeddings if specified
         if seq_emb is not None:
             all_embeddings.append(seq_emb.unsqueeze(1))
@@ -171,8 +177,10 @@ class Base(nn.Module):
         )  # (batch_size, total_fields, embed_dim)
 
         return embeddings
-    
-    def _get_all_x_values(self, numerical_x, categorical_x, use_seq_emb = False):
+
+    def _get_all_x_values(
+        self, numerical_x: Tensor, categorical_x: Tensor, use_seq_emb: bool = False
+    ):
         batch_size = (
             categorical_x.size(0) if categorical_x is not None else numerical_x.size(0)
         )
@@ -193,11 +201,11 @@ class Base(nn.Module):
         if numerical_x is not None and self.numerical_field_count > 0:
             num_x_values = numerical_x.unsqueeze(-1)
             all_x_values.append(num_x_values)
-        
+
         # if using seq embedding, concat one vector
         if use_seq_emb:
             all_x_values.append(
                 torch.ones(batch_size, 1, 1, device=device, dtype=torch.float32)
             )
-        
+
         return torch.cat(all_x_values, dim=1)  # (batch_size, total_features, 1)

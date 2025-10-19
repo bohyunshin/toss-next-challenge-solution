@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 import torch
 import torch.nn as nn
@@ -19,7 +19,7 @@ class Model(Base):
 
     def __init__(
         self,
-        categorical_field_dims: List[int] = None,
+        categorical_field_dims: Optional[List[int]] = None,
         numerical_field_count: int = 0,
         embed_dim: int = 10,
         reduction_ratio: float = 3,
@@ -72,8 +72,11 @@ class Model(Base):
             nn.init.xavier_normal_(self.bilinear.bilinear_weights, gain=1.0)
 
     def forward(
-        self, numerical_x: Tensor = None, categorical_x: Tensor = None, **kwargs
-    ):
+        self,
+        numerical_x: Optional[Tensor] = None,
+        categorical_x: Optional[Tensor] = None,
+        **kwargs,
+    ) -> Tensor:
         """
         Forward pass of FiBiNet
 
@@ -103,7 +106,9 @@ class Model(Base):
 
         return output.unsqueeze(-1)  # (batch_size, 1)
 
-    def _fibinet_interactions(self, numerical_x: Tensor, categorical_x: Tensor):
+    def _fibinet_interactions(
+        self, numerical_x: Optional[Tensor], categorical_x: Optional[Tensor]
+    ) -> Tensor:
         """Compute FiBiNet interactions: SENET + Bilinear"""
         batch_size = (
             categorical_x.size(0) if categorical_x is not None else numerical_x.size(0)

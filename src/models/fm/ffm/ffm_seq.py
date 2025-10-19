@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch import Tensor
+from typing import Optional, List
 from models.fm.ffm.ffm_base import FFMBase
 from layers import MultiHeadAttentionWithAggregation
 
@@ -16,11 +17,11 @@ class Model(FFMBase):
 
     def __init__(
         self,
-        categorical_field_dims=None,
-        numerical_field_count=0,
-        embed_dim=10,
+        categorical_field_dims: Optional[List[int]] = None,
+        numerical_field_count: int = 0,
+        embed_dim: int = 10,
         vocab_size: int = 0,
-        dropout_rate=0.2,
+        dropout_rate: float = 0.2,
         d_model: int = 128,
         nhead: int = 8,
         use_causal_mask: bool = False,
@@ -65,11 +66,11 @@ class Model(FFMBase):
 
     def forward(
         self,
-        numerical_x: Tensor = None,
-        categorical_x: Tensor = None,
-        seq: Tensor = None,
+        numerical_x: Optional[Tensor] = None,
+        categorical_x: Optional[Tensor] = None,
+        seq: Optional[Tensor] = None,
         **kwargs,
-    ):
+    ) -> Tensor:
         """
         Forward pass of FFM: LR + field-aware second-order interactions
 
@@ -121,7 +122,7 @@ class Model(FFMBase):
 
     def _field_aware_interactions(
         self, x_all: Tensor, all_embeddings: Tensor, device: str
-    ):
+    ) -> Tensor:
         """
         Compute field-aware second-order interactions: ΣᵢΣⱼ>ⱼ⟨vᵢ,fⱼ,vⱼ,fᵢ⟩xᵢxⱼ
         Using torch.einsum for efficient computation.

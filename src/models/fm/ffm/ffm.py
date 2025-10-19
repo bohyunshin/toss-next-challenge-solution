@@ -1,6 +1,6 @@
 import torch
-import torch.nn as nn
 from torch import Tensor
+from typing import Optional, List
 from models.fm.ffm.ffm_base import FFMBase
 
 
@@ -15,9 +15,9 @@ class Model(FFMBase):
 
     def __init__(
         self,
-        categorical_field_dims=None,
-        numerical_field_count=0,
-        embed_dim=10,
+        categorical_field_dims: Optional[List[int]] = None,
+        numerical_field_count: int = 0,
+        embed_dim: int = 10,
         **kwargs,
     ):
         # Initialize parent class (gets bias + first-order interactions)
@@ -28,8 +28,11 @@ class Model(FFMBase):
         )
 
     def forward(
-        self, numerical_x: Tensor = None, categorical_x: Tensor = None, **kwargs
-    ):
+        self,
+        numerical_x: Optional[Tensor] = None,
+        categorical_x: Optional[Tensor] = None,
+        **kwargs,
+    ) -> Tensor:
         """
         Forward pass of FFM: LR + field-aware second-order interactions
 
@@ -57,7 +60,9 @@ class Model(FFMBase):
 
         return output.unsqueeze(-1)  # (batch_size, 1)
 
-    def _field_aware_interactions(self, numerical_x: Tensor, categorical_x: Tensor):
+    def _field_aware_interactions(
+        self, numerical_x: Optional[Tensor], categorical_x: Optional[Tensor]
+    ) -> Tensor:
         """
         Compute field-aware second-order interactions: ΣᵢΣⱼ>ⱼ⟨vᵢ,fⱼ,vⱼ,fᵢ⟩xᵢxⱼ
         Using torch.einsum for efficient computation.
@@ -135,4 +140,3 @@ class Model(FFMBase):
         interaction_sum = torch.clamp(interaction_sum, -100, 100)
 
         return interaction_sum
-

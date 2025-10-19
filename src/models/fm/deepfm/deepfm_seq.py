@@ -1,5 +1,5 @@
 import torch
-import torch.nn as nn
+from typing import Optional, List
 
 from models.fm.deepfm.deepfm_base import DeepFMBase
 from layers import MultiHeadAttentionWithAggregation
@@ -18,11 +18,11 @@ class Model(DeepFMBase):
 
     def __init__(
         self,
-        categorical_field_dims=None,
-        numerical_field_count=0,
-        embed_dim=16,
-        mlp_dims=[512, 256, 128],
-        dropout=0.2,
+        categorical_field_dims: Optional[List[int]] = None,
+        numerical_field_count: int = 0,
+        embed_dim: int = 16,
+        mlp_dims: List[int] = [512, 256, 128],
+        dropout: float = 0.2,
         vocab_size: int = 0,
         d_model: int = 128,
         nhead: int = 8,
@@ -51,7 +51,13 @@ class Model(DeepFMBase):
             aggregation="attention_pool",
         )
 
-    def forward(self, numerical_x=None, categorical_x=None, seq=None, **kwargs):
+    def forward(
+        self,
+        numerical_x: Optional[torch.Tensor] = None,
+        categorical_x: Optional[torch.Tensor] = None,
+        seq: Optional[torch.Tensor] = None,
+        **kwargs,
+    ) -> torch.Tensor:
         """
         Forward pass of DeepFM: FM + Deep components
 

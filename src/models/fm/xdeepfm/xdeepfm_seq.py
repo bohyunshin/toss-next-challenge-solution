@@ -1,5 +1,7 @@
 from typing import List
 
+from torch import Tensor
+
 from models.fm.xdeepfm.xdeepfm_base import xDeepFMBase
 from layers import MultiHeadAttentionWithAggregation
 
@@ -54,7 +56,13 @@ class Model(xDeepFMBase):
             aggregation="attention_pool",
         )
 
-    def forward(self, numerical_x=None, categorical_x=None, seq=None, **kwargs):
+    def forward(
+        self,
+        numerical_x: Tensor = None,
+        categorical_x: Tensor = None,
+        seq: Tensor = None,
+        **kwargs,
+    ):
         """
         Forward pass of xDeepFM: Linear + CIN + DNN
 

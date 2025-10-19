@@ -1,4 +1,5 @@
 import torch
+from typing import Optional, List
 from models.fm.fm.fm_base import FMBase
 from layers import MultiHeadAttentionWithAggregation
 
@@ -15,9 +16,9 @@ class Model(FMBase):
 
     def __init__(
         self,
-        categorical_field_dims=None,
-        numerical_field_count=0,
-        embed_dim=10,
+        categorical_field_dims: Optional[List[int]] = None,
+        numerical_field_count: int = 0,
+        embed_dim: int = 10,
         vocab_size: int = 0,
         d_model: int = 128,
         nhead: int = 8,
@@ -43,7 +44,13 @@ class Model(FMBase):
             aggregation="attention_pool",
         )
 
-    def forward(self, numerical_x=None, categorical_x=None, seq=None, **kwargs):
+    def forward(
+        self,
+        numerical_x: Optional[torch.Tensor] = None,
+        categorical_x: Optional[torch.Tensor] = None,
+        seq: Optional[torch.Tensor] = None,
+        **kwargs,
+    ) -> torch.Tensor:
         """
         Forward pass of FM: LR + second-order interactions
 

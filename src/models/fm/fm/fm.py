@@ -1,4 +1,5 @@
 import torch
+from typing import Optional, List
 from models.fm.fm.fm_base import FMBase
 
 
@@ -14,9 +15,9 @@ class Model(FMBase):
 
     def __init__(
         self,
-        categorical_field_dims=None,
-        numerical_field_count=0,
-        embed_dim=10,
+        categorical_field_dims: Optional[List[int]] = None,
+        numerical_field_count: int = 0,
+        embed_dim: int = 10,
         **kwargs,
     ):
         # Initialize parent class (gets bias + first-order interactions)
@@ -26,7 +27,12 @@ class Model(FMBase):
             embed_dim=embed_dim,
         )
 
-    def forward(self, numerical_x=None, categorical_x=None, **kwargs):
+    def forward(
+        self,
+        numerical_x: Optional[torch.Tensor] = None,
+        categorical_x: Optional[torch.Tensor] = None,
+        **kwargs,
+    ) -> torch.Tensor:
         """
         Forward pass of FM: LR + second-order interactions
 
@@ -54,4 +60,3 @@ class Model(FMBase):
         output += self._second_order_interactions(numerical_x, categorical_x)
 
         return output.unsqueeze(-1)  # (batch_size, 1)
-

@@ -1,7 +1,6 @@
 from typing import List
 
-import torch.nn as nn
-import torch
+from torch import Tensor
 
 from models.fm.base import Base
 
@@ -32,7 +31,9 @@ class Model(Base):
             numerical_field_count=numerical_field_count,
         )
 
-    def forward(self, numerical_x=None, categorical_x=None, **kwargs):
+    def forward(
+        self, numerical_x: Tensor = None, categorical_x: Tensor = None, **kwargs
+    ):
         """
         Forward pass of Logistic Regression
 
